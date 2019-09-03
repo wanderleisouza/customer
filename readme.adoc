@@ -1,0 +1,151 @@
+= My commands sheet
+:toc:
+
+== Getting started 
+
+=== Install Java 11
+
+	brew tap AdoptOpenJDK/openjdk
+	brew cask install adoptopenjdk11
+	which java
+	
+=== Instal Maven3
+
+ 	brew install maven
+ 	mvn --version
+	
+=== Install Docker Desktop for Mac and 
+
+https://docs.docker.com/docker-for-mac/install/ + 
+...and setup kubernetes https://docs.docker.com/docker-for-mac/#kubernets
+
+after kubernetes cluster running, install helm, the Kubernetes Package Manager
+ 
+	brew install kubernetes-helm
+	helm init
+	helm init --upgrade
+	helm version
+
+=== SpringToolSuite4/Eclipse Plugins
+
+https://marketplace.eclipse.org/content/asciidoctor-editor
+
+http://marketplace.eclipse.org/content/eclipse-docker-tooling +
+To activate: Window > Show View > Other... (Docker Explorer)
+
+Optional: +
+https://marketplace.eclipse.org/content/yaml-editor
+
+=== Install Lombok
+
+download available from: https://projectlombok.org
+
+	java -jar lombok.jar
+
+=== Install pjson
+
+Install pygments and xmlformatter
+
+	pip install pjson xmlformatter
+
+== Build and Test using Maven
+
+. Run application:
+
+	cd customer
+	mvn spring-boot:run
+
+. Test application
+
+	curl -s localhost:8080/1234 | pjson
+	
+== Jib builder and run using a Docker image
+
+
+. To create the image, Jib can use the *local* Docker daemon
+
+	mvn clean package jib:dockerBuild -Dimage=examples/customer
+	docker run -d -p 8080:8080 examples/customer
+	
+TIP: => *jib:build* builds to a container image registry +
+=> to run in the foreground, remove *-d* (--detach) option
+	 
+
+. Test application
+
+	curl -s localhost:8080/1234 | pjson	
+	
+== API Management with Kong 
+
+=== Install Kong (and PostgreSQL dependency)
+
+https://docs.konghq.com/install/macos/
+
+	brew tap kong/kong
+	brew install kong
+	
+	brew install postgres
+	pg_ctl -D /usr/local/var/postgres start
+	psql -c "CREATE USER kong;" 
+	psql -c "CREATE DATABASE kong OWNER kong;"	
+	kong migrations bootstrap
+	
+...
+
+	wget https://raw.githubusercontent.com/Kong/kong/master/kong.conf.default
+	cp kong.conf.default kong.conf
+	kong start -c kong.conf
+	kong roar
+	
+
+Kong 5 min quickstart 
+
+https://docs.konghq.com/1.3.x/getting-started/quickstart/
+
+=== Konga 
+
+Konga is a non-official GUI for kong administration (official Kong Admin GUI is available only for Kong enterprise) 
+
+	git clone https://github.com/pantsel/konga.git
+	cd konga
+	npm i
+	npm start
+	http://localhost:1337 
+
+=== Adding services and routes to Kong
+
+*Service* is the name Kong uses to refer to the upstream APIs and microservices it manages. +
+
+	curl -i -X POST --url http://localhost:8001/services/ --data 'name=customer' --data 'url=http://localhost:8080'
+
+*Routes* specify how (and if) requests are sent to their services after they reach Kong.
+
+	curl -i -X POST --url http://localhost:8001/services/customer/routes --data 'paths[]=/v2/customers'
+
+and action... 
+  
+	curl -s http://localhost:8000/v2/customers/123 | pjson
+
+=== Enabling Key-Auth plugin 
+
+Configure the key-auth plugin to add authentication to your customer service
+	
+	curl -i -X POST --url http://localhost:8001/services/customer/plugins/ --data 'name=key-auth'
+  
+Creating an API consumer (the consumer object represents an user of a service)
+ 	
+ 	curl -X POST http://localhost:8001/consumers/ --data 'username=chuck.norris@gmail.com' --data 'custom_id=777' --data 'tags[]=karate'
+	
+	curl -s http://localhost:8001/consumers?custom_id=777 | pjson
+
+Provision random key credential for your consumer
+
+	curl -i -X POST --url http://localhost:8001/consumers/chuck.norris@gmail.com/key-auth/ --data 'key=c82356ec-fc40-4eb3-b2f8-5c4102e50ed8'
+
+Verify that your consumer credentials are valid
+
+	curl -s http://localhost:8000/v2/customers/123?apikey=c82356ec-fc40-4eb3-b2f8-5c4102e50ed8 | pjson 
+	
+or	
+
+	curl -s http://localhost:8000/v2/customers/123 --header 'apikey: c82356ec-fc40-4eb3-b2f8-5c4102e50ed8' | pjson 
