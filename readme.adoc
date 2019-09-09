@@ -19,8 +19,17 @@
 https://docs.docker.com/docker-for-mac/install/ + 
 ...and setup kubernetes https://docs.docker.com/docker-for-mac/#kubernets
 
-after kubernetes cluster running, install helm, the Kubernetes Package Manager
+Verify docker installation
  
+	docker -v 
+
+setup a Kubernetes context
+
+	kubectl config get-context #from ~/.kube/config
+	kubectl config set-context docker-desktop
+
+after kubernetes cluster running, install helm, the Kubernetes Package Manager
+
 	brew install kubernetes-helm
 	helm init
 	helm init --upgrade

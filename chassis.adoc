@@ -1,0 +1,13 @@
+= Microservice Chassis
+:toc:
+
+== Logging 
+
+* SLF4J: Logging facade
+* Logback: SLF4J implementation
+
+A twelve-factor app never concerns itself with routing or storage of its output stream. It should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout
+
+The Spring Boot logger is configured to only log messages of `INFO` level or higher. We can see the `TRACE` and `DEBUG` messages if we add the following to our `application.properties` file
+
+	logging.level.com.example=DEBUG

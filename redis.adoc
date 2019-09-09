@@ -1,0 +1,68 @@
+= Persistence with Redis Database
+:toc:
+
+== Install Redis using a docker image  
+
+	docker run -d -p 6379:6379 redis redis-server
+
+to install `redis-cli` tool and test `localhost` installation 
+
+	brew install redis
+	redis-cli -a myUnguessablePazzzzzword123 ping
+	
+== Preload Data from .csv file
+
+To manually add a customer into Redis (following Spring Data Redis format) 
+
+	"DEL" "Customer:123"
+	"HMSET" "Customer:123" "_class" "com.example.customer.domain.Customer" "id" "124" "name" "Jhon Doe" "category" "GOLD_ELITE"
+	"SADD" "Customer" "123"
+	
+...or import from `data.csv` file
+
+	awk -F, 'NR > 1{ print "DEL " "\"Customer:"$1"\"",  "\nHMSET", "\"Customer:"$1"\"", "\"_class""\"", "\"com.example.customer.domain.Customer""\"", "\"id""\"", "\""$1"\"", "\"name""\"", "\""$2"\"", "\"category""\"", "\""$3"\"", "\nSADD " "\"Customer\"" " " "\""$1"\""}' data.csv  | redis-cli --pipe
+
+and to exporting to a .csv file
+
+	redis-cli --csv hgetall 'Customer:123' > output.csv
+
+== Maven dependencies (add to pom.xml file)
+
+	<dependency>
+		<groupId>org.springframework.data</groupId>
+		<artifactId>spring-data-redis</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>redis.clients</groupId>
+		<artifactId>jedis</artifactId>
+	</dependency>
+	
+== Spring Data Redis black magic
+
+	@Repository
+	public interface CustomerRepository extends CrudRepository<Customer, String> {}
+
+    public Customer customer(String id) {
+        return customerRepository.findById(id).orElseThrow(CustomerNotFoundException::new);
+    }
+
+== POST (create) customers
+
+	FIX: //UUID e campos default
+
+   	curl -X POST localhost:8080/ -d '{"id":"123","name":"Jane Doe","category":"MEMBER"}'  -H "Content-type: application/json"
+   	curl -X POST localhost:8080/ -d '{"id":"124","name":"Jhon Doe","category":"GOLD_ELITE"}'  -H "Content-type: application/json"
+   	
+   
+== GET (read) customers 
+
+	curl -s localhost:8080/123 | pjson
+	curl -s localhost:8080/666 | pjson  #not found
+	
+== Exploring redis-cli 
+
+	redis-cli
+
+	127.0.0.1:6379> keys *
+	127.0.0.1:6379> hgetall "Customer:123"
+	 
