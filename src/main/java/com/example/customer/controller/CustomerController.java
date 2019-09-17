@@ -38,5 +38,5 @@ public class CustomerController {
         logger.debug("listing all consumers");
         return customerService.findAll();
     }
-
+    
 }

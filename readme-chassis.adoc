@@ -1,0 +1,50 @@
+= Microservice Chassis
+:toc:
+
+
+== Externalized configuration
+
+This chassis reads all configuration from an external Spring Cloud Config Server. Take a look at Config Server project https://github.com/wanderleisouza/config-server/blob/master/README.adoc[README.adoc]  file
+
+Every client must add the `spring-cloud-starter-config` dependency to the project
+
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-config</artifactId>
+	</dependency>
+		
+		
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+		
+and in `boostrap.properties` file, put the Config Server address
+
+	spring.cloud.config.uri=http://localhost:8888		 
+
+
+== Logging 
+
+Spring-boot defaults:
+
+* SLF4J: Logging facade
+* Logback: SLF4J implementation
+
+A twelve-factor app never concerns itself with routing or storage of its output stream. It should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to `stdout`
+
+The Spring Boot logger is configured to only log messages of `INFO` level or higher. We can see the `TRACE` and `DEBUG` messages if we add the following to our `application.properties` file
+
+	logging.level.com.example=DEBUG
+
+
+== Health checks
+== Metrics
+== Distributed tracing
