@@ -13,7 +13,6 @@ Every client must add the `spring-cloud-starter-config` dependency to the projec
 		<artifactId>spring-cloud-starter-config</artifactId>
 	</dependency>
 		
-		
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -26,10 +25,21 @@ Every client must add the `spring-cloud-starter-config` dependency to the projec
 		</dependencies>
 	</dependencyManagement>
 		
-and in `boostrap.properties` file, put the Config Server address
+In `boostrap.yml` file, put the *active profile*, *application name* and *config server* address
 
-	spring.cloud.config.uri=http://localhost:8888		 
+	spring:
+	  profiles:
+	  	active: dev
+	  application:
+	    name: customer
+	  cloud:
+	    config:
+	      uri: ${SPRING_CONFIG_URI:http://localhost:8888}	 
 
+E.g. the profile `-Dspring.profiles.active=prod` will read properties from `application.yml`, `customer.yml` and `customer-prod.yml` files from config server/github repo.
+
+	mvn spring-boot:run -Dspring.profiles.active=prod
+	
 
 == Logging 
 
