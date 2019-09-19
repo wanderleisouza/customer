@@ -70,5 +70,34 @@ The Spring Boot logger is configured to only log messages of `INFO` level or hig
 
 
 == Health checks
+
+How to detect that a running service instance is unable to handle requests?
+
+A service has an health check API endpoint (e.g. HTTP `/actuator/health`) that returns the health of the service. 
+The API endpoint handler performs various checks, such as
+
+* the status of the connections to the infrastructure services used by the service instance
+* the status of the host, e.g. disk space
+* application specific logic
+
+To activate a `/actuator/health` endpoint in Spring Boot applications, it is necessary to add the following dependency in your pom.xml
+
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-actuator</artifactId>
+	</dependency>
+
+...and to show all *health check details*, use this parameters in application.yml file (config server)
+
+	management:
+	   endpoint:
+	      health:
+	         show-details: always
+
+to test the microservice health, with a running application, call `/actuator/health` endpoint
+
+	curl -s http://localhost:8080/actuator/health | pjson
+
+
 == Metrics
 == Distributed tracing
