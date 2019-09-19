@@ -61,7 +61,7 @@ Install pygments and xmlformatter
 
 . Run application:
 
-	mvn spring-boot:run -Dspring.profiles.active=dev -Dspring.cloud.config.uri=http://localhost:8888
+	mvn spring-boot:run -Dspring.cloud.config.uri=http://localhost:8888
 
 . Test application
 

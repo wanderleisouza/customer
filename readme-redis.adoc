@@ -1,14 +1,15 @@
 = Persistence with Redis Database
 :toc:
 
-== Install Redis using a docker image  
+== Install Redis 
 
-	docker run -d -p 6379:6379 redis redis-server
-
-to install `redis-cli` tool and test `localhost` installation 
+to install `redis` and test `localhost` installation 
 
 	brew install redis
+	redis-server
 	redis-cli ping
+	
+	redis-cli shutdown
 	
 == Preload Data from .csv file
 
@@ -37,7 +38,9 @@ and to exporting to a .csv file
 		<artifactId>jedis</artifactId>
 	</dependency>
 	
-== Spring Data Redis black magic
+== Spring Data Redis black magic 
+
+NOTE: do not forget to configure a Redis *ConnectionFactory* in your spring boot application.
 
 	@Repository
 	public interface CustomerRepository extends CrudRepository<Customer, String> {}

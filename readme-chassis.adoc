@@ -27,19 +27,21 @@ Every microservice *client* must add the `spring-cloud-starter-config` dependenc
 		</dependencies>
 	</dependencyManagement>
 		
-And in `boostrap.yml` file, insert the microservice *application name*
+And in `boostrap.yml` file, insert the microservice *application name* and the default profile.
 
 	spring:
 	   application:
 	      name: customer
+	   profiles:
+	      default: dev
 
 Use a spring profile to start the application. The profile `-Dspring.profiles.active=dev` will read properties from `application.yml`, `customer.yml` and `customer-dev.yml` files from config server/github repo.
 
+NOTE: `redis-server` must be started with `--protected-mode no` option to accept remote connections from a docker container machine
+
 	mvn spring-boot:run -Dspring.profiles.active=dev -Dspring.cloud.config.uri=http://localhost:8888
 
-or run as a docker container 
-
-NOTE: `redis-server` must be started with `--protected-mode no` option to accept remote connections from a docker container machine
+...as an alternative, you can run the microservice as a docker container 
 	
 
 	mvn clean package jib:dockerBuild -Dimage=examples/customer
