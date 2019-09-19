@@ -4,9 +4,11 @@
 
 == Externalized configuration
 
-This chassis reads all configuration from an external Spring Cloud Config Server. Take a look at Config Server project https://github.com/wanderleisouza/config-server/blob/master/README.adoc[README.adoc]  file
+This chassis reads all configuration from an external Spring Cloud Config Server (make sure that there is an running config server). Take a look at Config Server project https://github.com/wanderleisouza/config-server/blob/master/README.adoc[README.adoc] file for additional details.
 
-Every client must add the `spring-cloud-starter-config` dependency to the project
+	curl -s http://localhost:8888/customer/dev | pjson
+	
+Every microservice *client* must add the `spring-cloud-starter-config` dependency to the project
 
 	<dependency>
 		<groupId>org.springframework.cloud</groupId>
@@ -25,21 +27,25 @@ Every client must add the `spring-cloud-starter-config` dependency to the projec
 		</dependencies>
 	</dependencyManagement>
 		
-In `boostrap.yml` file, put the *active profile*, *application name* and *config server* address
+And in `boostrap.yml` file, insert the microservice *application name*
 
 	spring:
-	  profiles:
-	  	active: dev
-	  application:
-	    name: customer
-	  cloud:
-	    config:
-	      uri: ${SPRING_CONFIG_URI:http://localhost:8888}	 
+	   application:
+	      name: customer
 
-E.g. the profile `-Dspring.profiles.active=prod` will read properties from `application.yml`, `customer.yml` and `customer-prod.yml` files from config server/github repo.
+Use a spring profile to start the application. The profile `-Dspring.profiles.active=dev` will read properties from `application.yml`, `customer.yml` and `customer-dev.yml` files from config server/github repo.
 
-	mvn spring-boot:run -Dspring.profiles.active=prod
+	mvn spring-boot:run -Dspring.profiles.active=dev -Dspring.cloud.config.uri=http://localhost:8888
+
+or run as a docker container 
+
+NOTE: `redis-server` must be started with `--protected-mode no` option to accept remote connections from a docker container machine
 	
+
+	mvn clean package jib:dockerBuild -Dimage=examples/customer
+	
+	docker run --env spring.profiles.active=dev,docker --env spring.cloud.config.uri=http://host.docker.internal:8888 -p 8080:8080 examples/customer
+
 
 == Logging 
 

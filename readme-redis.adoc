@@ -8,7 +8,7 @@
 to install `redis-cli` tool and test `localhost` installation 
 
 	brew install redis
-	redis-cli -a myUnguessablePazzzzzword123 ping
+	redis-cli ping
 	
 == Preload Data from .csv file
 

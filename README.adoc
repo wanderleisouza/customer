@@ -61,12 +61,11 @@ Install pygments and xmlformatter
 
 . Run application:
 
-	cd customer
-	mvn spring-boot:run
+	mvn spring-boot:run -Dspring.profiles.active=dev -Dspring.cloud.config.uri=http://localhost:8888
 
 . Test application
 
-	curl -s localhost:8080/1234 | pjson
+	curl -s localhost:8080/files/444 | pjson
 	
 == Jib builder and run using a Docker image
 
@@ -74,7 +73,8 @@ Install pygments and xmlformatter
 . To create the image, Jib can use the *local* Docker daemon
 
 	mvn clean package jib:dockerBuild -Dimage=examples/customer
-	docker run -d -p 8080:8080 examples/customer
+	
+	docker run --env spring.profiles.active=dev --env spring.cloud.config.uri=http://host.docker.internal:8888 -p 8080:8080 examples/customer
 	
 TIP: => *jib:build* builds to a container image registry +
 => to run in the foreground, remove *-d* (--detach) option
