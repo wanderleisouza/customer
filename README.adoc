@@ -25,13 +25,12 @@ Verify docker installation
 
 setup a Kubernetes context
 
-	kubectl config get-context #from ~/.kube/config
-	kubectl config set-context docker-desktop
+	kubectl config get-contexts #from ~/.kube/config
+	kubectl config use-context docker-for-desktop
 
 after kubernetes cluster running, install helm, the Kubernetes Package Manager
 
 	brew install kubernetes-helm
-	helm init
 	helm init --upgrade
 	helm version
 
