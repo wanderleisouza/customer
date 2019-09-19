@@ -4,6 +4,8 @@
 
 == Externalized configuration
 
+Applications sometimes store config as constants in the code. This is a violation of best practices, which *requires strict separation of config from code*.
+
 This chassis reads all configuration from an external Spring Cloud Config Server (make sure that there is an running config server). Take a look at Config Server project https://github.com/wanderleisouza/config-server/blob/master/README.adoc[README.adoc] file for additional details.
 
 	curl -s http://localhost:8888/customer/dev | pjson
@@ -58,9 +60,13 @@ Spring-boot defaults:
 
 A twelve-factor app never concerns itself with routing or storage of its output stream. It should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to `stdout`
 
-The Spring Boot logger is configured to only log messages of `INFO` level or higher. We can see the `TRACE` and `DEBUG` messages if we add the following to our `application.properties` file
+The Spring Boot logger is configured to only log messages of `INFO` level or higher. We can see the `TRACE` and `DEBUG` messages if we add the following to our `application.yml` file (from config repo)
 
-	logging.level.com.example=DEBUG
+	logging:
+	   level:
+	      root: INFO
+	      com:
+	         example: DEBUG
 
 
 == Health checks

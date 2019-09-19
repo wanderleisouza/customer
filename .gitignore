@@ -1,6 +1,8 @@
 
 # Created by https://www.gitignore.io/api/java,maven,eclipse
 # Edit at https://www.gitignore.io/?templates=java,maven,eclipse
+###
+newrelic.yml
 
 ### Mac ###
 .DS_Store
@@ -112,3 +114,4 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 
 # End of https://www.gitignore.io/api/java,maven,eclipse
+/readme-newrelic.adoc
