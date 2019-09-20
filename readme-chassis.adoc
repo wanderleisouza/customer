@@ -37,15 +37,17 @@ And in `boostrap.yml` file, insert the microservice *application name* and the d
 	   profiles:
 	      default: dev
 
-Use a spring profile to start the application. The profile `-Dspring.profiles.active=dev` will read properties from `application.yml`, `customer.yml` and `customer-dev.yml` files from config server/github repo.
 
-NOTE: `redis-server` must be started with `--protected-mode no` option to accept remote connections from a docker container machine
+=== Profiles (dev, qa, prod) 
+
+Use a spring profile to start the application. The profile `-Dspring.profiles.active=dev` will read properties from `application.yml`, `customer.yml` and `customer-dev.yml` files from config server/github repo.
 
 	mvn spring-boot:run -Dspring.profiles.active=dev -Dspring.cloud.config.uri=http://localhost:8888
 
 ...as an alternative, you can run the microservice as a docker container 
 	
-
+NOTE: `redis-server` must be started with `--protected-mode no` option to accept remote connections from a docker container machine
+	
 	mvn clean package jib:dockerBuild -Dimage=examples/customer
 	
 	docker run --env spring.profiles.active=dev,docker --env spring.cloud.config.uri=http://host.docker.internal:8888 -p 8080:8080 examples/customer
@@ -68,6 +70,15 @@ The Spring Boot logger is configured to only log messages of `INFO` level or hig
 	      com:
 	         example: DEBUG
 
+
+=== Splunk in Docker!
+
+Setup the Splunk HTTP Event Collector 
+https://docs.splunk.com/Documentation/Splunk/7.3.1/Data/UsetheHTTPEventCollector#Configure_HTTP_Event_Collector_on_Splunk_Enterprise
+	
+...and user docker splunk log driver
+	
+	docker run --env spring.profiles.active=prod,docker --env spring.cloud.config.uri=http://host.docker.internal:8888 -p 8080:8080 --log-driver=splunk --log-opt splunk-token=0592e8fa-8d53-4351-9a37-01fafd9e6a00 --log-opt splunk-url=https://input-prd-p-3bjdmzm5d9xq.cloud.splunk.com:8088 --log-opt splunk-insecureskipverify=true --log-opt splunk-source=customer-prod --log-opt tag="{{.ImageName}}/{{.Name}}/{{.ID}}" examples/customer
 
 == Health checks
 
@@ -98,6 +109,80 @@ to test the microservice health, with a running application, call `/actuator/hea
 
 	curl -s http://localhost:8080/actuator/health | pjson
 
+Other important *spring boot actuators* 
+
+NOTE: first make sure that all necessary actuator web exposure endpoints are exposed
+
+	management:
+	   endpoints:
+	      web:
+	         exposure:
+	            include: info,health,metrics,env,loggers
+            
+
+[cols="20,80"]
+|====
+|`/info` 	|Displays information about your application.
+|`/health`  |Displays your application’s health status.
+|`/env` 	|Displays current environment properties.
+|`/loggers` |Displays and modifies the configured loggers.
+|====
+
 
 == Metrics
+
+1. Download the New Relic Java agent (newrelic-java.zip) from your new relic account
+2. Place newrelic.yml in the same folder as newrelic.jar (/newrelic folder)
+3. Configure the newrelic.yml file (or JVM system properties) with your license_key and app_name
+4. Pass -javaagent:/newrelic/newrelic.jar to the JVM running your application server
+
+
+	mvn spring-boot:run -Dspring.profiles.active=prod -Dspring.cloud.config.uri=http://localhost:8888 -Dspring-boot.run.jvmArguments=-javaagent:newrelic/newrelic.jar
+
+
+=== Micrometrics
+
+
+   metrics:
+      export:
+         simple:
+            enabled: true
+
+Metrics actuator endpoint
+[cols="20,80"]
+|====	            	           
+|`/metrics` |Shows various metrics information of your application. 
+|====
+
 == Distributed tracing
+
+Distributed tracing is the process of tracking the activity resulting from a request to an application. With this feature, you can:
+
+1. Trace the path of a request as it travels across a complex system
+2. Discover the latency of the components along that path
+3. Know which component in the path is creating a bottleneck
+
+To enable Distributed tracing in new relic, just change the `distributed_tracing` property in the `metrics/newrelic.yml` file or add the `-Dnewrelic.config.distributed_tracing.enabled=true` parameter to system properties.
+
+	  distributed_tracing:
+    	enabled: true
+
+=== Splunk integration
+
+NOTE: To use New Relic Java agent API, make the API jar available at compile time by adding it to your application class path.
+
+	<dependency>
+		<groupId>com.newrelic.agent.java</groupId>
+		<artifactId>newrelic-api</artifactId>
+		<version>5.6.0</version>
+	</dependency>
+	
+The `com.example.customer.componentUniqueTrackingNumberFilter` uses the https://docs.newrelic.com/docs/apis/rest-api-v2[New Relic API] to obtain the current new relic transaction and put into a traceId variable in the MDC logback context. It's necessary to add this variable to log pattern `%X{traceId}`.
+
+	"%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %X{traceId} %-5level %logger{39} - %msg%n"
+
+=== New Relic and Splunk working together
+ 
+	docker run --env "JAVA_TOOL_OPTIONS=-javaagent:newrelic.jar" --env spring.profiles.active=prod,docker --env spring.cloud.config.uri=http://host.docker.internal:8888 -p 8080:8080 --log-driver=splunk --log-opt splunk-token=0592e8fa-8d53-4351-9a37-01fafd9e6a00 --log-opt splunk-url=https://input-prd-p-3bjdmzm5d9xq.cloud.splunk.com:8088 --log-opt splunk-insecureskipverify=true --log-opt splunk-source=customer-prod --log-opt tag="{{.ImageName}}/{{.Name}}/{{.ID}}" examples/customer
+
+  
